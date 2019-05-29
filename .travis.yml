@@ -3,6 +3,10 @@ language: julia
 os:
   - linux
 #  - osx
+env:
+  - JULIA_CMDSTAN_HOME="~/cmdstan-2.19.1/"
+before_install:
+  - install-stan.sh
 julia:
   - 1.1
   - nightly
