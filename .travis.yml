@@ -6,7 +6,10 @@ os:
 env:
   - JULIA_CMDSTAN_HOME="~/cmdstan-2.19.1/"
 before_install:
-  - install_stan.sh
+  - echo `pwd`
+  - wget https://github.com/stan-dev/cmdstan/releases/download/v2.19.1/cmdstan-2.19.1.tar.gz
+  - tar -xzpf cmdstan-2.19.1.tar.gz
+  - cd cmdstan-2.19.1; make build
 julia:
   - 1.1
   - nightly
