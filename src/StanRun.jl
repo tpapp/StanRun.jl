@@ -141,10 +141,11 @@ $(SIGNATURES)
 Make a Stan command. Internal, not exported.
 """
 function stan_cmd_and_paths(exec_path::AbstractString, data_file::AbstractString,
-                            output_base::AbstractString, id::Integer)
+                            output_base::AbstractString, id::Integer,
+                            sample_options, output_options)
     sample_file = sample_file_path(output_base, id)
     log_file = log_file_path(output_base, id)
-    pipeline(`$(exec_path) sample id=$(id) data file=$(data_file) output file=$(sample_file)`;
+    pipeline(`$(exec_path) sample id=$(id) $(sample_options) data file=$(data_file) output file=$(sample_file) $(output_options)`;
              stdout = log_file), (sample_file, log_file)
 end
 
@@ -161,9 +162,11 @@ end
 function stan_sample(model, data::NamedTuple, n_chains::Integer;
                      output_base = default_output_base(model),
                      data_file = output_base * ".data.R",
-                     rm_samples = true)
+                     rm_samples = true, sample_options = (), output_options = ())
     stan_dump(data_file, data; force = true)
-    stan_sample(model, data_file, n_chains; output_base = output_base, rm_samples = rm_samples)
+    stan_sample(model, data_file, n_chains; output_base = output_base,
+                rm_samples = rm_samples, sample_options = sample_options,
+                output_options = output_options)
 end
 
 """
@@ -180,13 +183,17 @@ When `data` is provided as a `NamedTuple`, it is written using `StanDump.stan_du
 
 When `rm_samples` (default: `true`), remove potential pre-existing sample files after
 compiling the model.
+
+`sample_options` and `output_options` are either strings, or iterables (empty by default),
+and are pasted in after `sample` or `output`, respectively, in the command line.
 """
 function stan_sample(model::StanModel, data_file::AbstractString, n_chains::Integer;
                      output_base = default_output_base(model),
-                     rm_samples = true)
+                     rm_samples = true, sample_options = (), output_options = ())
     exec_path = ensure_executable(model)
     rm_samples && rm.(find_samples(model))
-    cmds_and_paths = [stan_cmd_and_paths(exec_path, data_file, output_base, id)
+    cmds_and_paths = [stan_cmd_and_paths(exec_path, data_file, output_base, id,
+                                         sample_options, output_options)
                       for id in 1:n_chains]
     pmap(cmds_and_paths) do cmd_and_path
         cmd, (sample_path, log_path) = cmd_and_path
