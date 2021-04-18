@@ -14,7 +14,7 @@ jobs:
     name: install Stan
     runs-on: ubuntu-latest
     env:
-      JULIA_CMDSTAN_HOME: ${{ HOME }}/cmdstan-2.19.1/
+      JULIA_CMDSTAN_HOME: ${{ env.HOME }}/cmdstan-2.19.1/
     steps:
       - uses: actions/checkout@v2
 #      - run: OLDWD=`pwd`
