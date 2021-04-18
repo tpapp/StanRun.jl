@@ -14,10 +14,10 @@ jobs:
     name: install Stan
     runs-on: ubuntu-latest
     env:
-      JULIA_CMDSTAN_HOME: ~/cmdstan-2.19.1/
+      JULIA_CMDSTAN_HOME: ~/cmdstan-2.26.1/
     steps:
       - uses: actions/checkout@v2
-      - run: wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.19.1/cmdstan-2.19.1.tar.gz
+      - run: wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
       - run: tar -C ~ -zxpvf ~/cmdstan.tar.gz
       - run: make -C $JULIA_CMDSTAN_HOME build
       - run: echo $JULIA_CMDSTAN_HOME >> $GITHUB_ENV
