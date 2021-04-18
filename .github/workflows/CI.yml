@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 #      - run: OLDWD=`pwd`
-      - run: cd ~
+      - run: mkdir $JULIA_CMDSTAN_HOME
       - run: wget https://github.com/stan-dev/cmdstan/releases/download/v2.19.1/cmdstan-2.19.1.tar.gz
       - run: tar -C $JULIA_CMDSTAN_HOME -xzpf cmdstan-2.19.1.tar.gz
       - run: make -C $JULIA_CMDSTAN_HOME build
