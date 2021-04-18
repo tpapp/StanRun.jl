@@ -20,7 +20,7 @@ jobs:
 #      - run: OLDWD=`pwd`
       - run: mkdir -p $JULIA_CMDSTAN_HOME
       - run: wget https://github.com/stan-dev/cmdstan/releases/download/v2.19.1/cmdstan-2.19.1.tar.gz
-      - run: tar -C $JULIA_CMDSTAN_HOME -xzpf cmdstan-2.19.1.tar.gz
+      - run: tar -C $JULIA_CMDSTAN_HOME -zxpvf cmdstan-2.19.1.tar.gz
       - run: make -C $JULIA_CMDSTAN_HOME build
 #      - run: cd $OLDWD
   test:
