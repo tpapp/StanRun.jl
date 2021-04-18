@@ -13,10 +13,10 @@ jobs:
   env:
     JULIA_CMDSTAN_HOME: "$HOME/cmdstan-2.19.1/"
   build:
+    name: install Stan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: install Stan
 #      - run: OLDWD=`pwd`
       - run: cd ~
       - run: wget https://github.com/stan-dev/cmdstan/releases/download/v2.19.1/cmdstan-2.19.1.tar.gz
