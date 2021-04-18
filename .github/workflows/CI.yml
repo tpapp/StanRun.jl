@@ -20,6 +20,7 @@ jobs:
       - run: wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.19.1/cmdstan-2.19.1.tar.gz
       - run: tar -C ~ -zxpvf ~/cmdstan.tar.gz
       - run: make -C $JULIA_CMDSTAN_HOME build
+      - run: echo $JULIA_CMDSTAN_HOME >> $GITHUB_ENV
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
