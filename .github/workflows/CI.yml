@@ -17,9 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: download and compile Stan
-        run: wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
-        run: tar -C ~ -zxpvf ~/cmdstan.tar.gz
-        run: make -C $JULIA_CMDSTAN_HOME build
+        run: |
+          wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
+          tar -C ~ -zxpvf ~/cmdstan.tar.gz
+          make -C $JULIA_CMDSTAN_HOME build
       - name: save artifact
         uses: actions/upload-artifact@v2
         with:
