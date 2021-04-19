@@ -12,24 +12,9 @@ on:
 env:
   JULIA_CMDSTAN_HOME: ~/cmdstan-2.26.1/
 jobs:
-  install_stan:
-    name: install Stan
-    runs-on: ubuntu-latest
-    steps:
-      - name: download and compile Stan
-        run: |
-          wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
-          tar -C ~ -zxpvf ~/cmdstan.tar.gz
-          make -C $JULIA_CMDSTAN_HOME build
-      - name: save artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: cmdstan
-          path: ${{ env.JULIA_CMDSTAN_HOME }}
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
-    needs: install_stan
     strategy:
       fail-fast: false
       matrix:
@@ -42,9 +27,10 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: cmdstan
+      - run: |
+          wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
+          tar -C ~ -zxpvf ~/cmdstan.tar.gz
+          make -C $JULIA_CMDSTAN_HOME build
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
