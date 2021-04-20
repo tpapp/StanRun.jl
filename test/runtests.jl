@@ -34,6 +34,8 @@ end
 
 @testset "model error and message" begin
     model = StanModel(joinpath(@__DIR__, "test_incorrect.stan"))
+    @test_logs (:info, "Stan compilation information") stan_compile(model; debug = true,
+                                                                    dry_run = true)
     try
         stan_compile(model)
     catch e
