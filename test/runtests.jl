@@ -38,7 +38,7 @@ end
         stan_compile(model)
     catch e
         @test e isa StanRun.StanModelError
-        @test occursin("Variable \"x\" does not exist", e.message)
+        @test occursin("Identifier 'x' not in scope", e.message)
         io = IOBuffer()
         showerror(io, e)
         e_repr = String(take!(io))
