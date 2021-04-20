@@ -10,21 +10,9 @@ on:
       - master
     tags: '*'
 jobs:
-  install_stan:
-    name: install Stan
-    runs-on: ubuntu-latest
-    env:
-      JULIA_CMDSTAN_HOME: ~/cmdstan-2.26.1/
-    steps:
-      - uses: actions/checkout@v2
-      - run: wget -O ~/cmdstan.tar.gz https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
-      - run: tar -C ~ -zxpvf ~/cmdstan.tar.gz
-      - run: make -C $JULIA_CMDSTAN_HOME build
-      - run: echo "JULIA_CMDSTAN_HOME=$JULIA_CMDSTAN_HOME" >> $GITHUB_ENV
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
-    needs: install_stan
     strategy:
       fail-fast: false
       matrix:
@@ -36,7 +24,11 @@ jobs:
           - ubuntu-latest
         arch:
           - x64
+    env:
+      CMDSTAN_VERSION: "2.26.1"
     steps:
+      - run: echo "JULIA_CMDSTAN_HOME=$HOME/cmdstan-$CMDSTAN_VERSION/" >> $GITHUB_ENV
+      - run: echo "CMDSTAN_URL=https://github.com/stan-dev/cmdstan/releases/download/v$CMDSTAN_VERSION/cmdstan-$CMDSTAN_VERSION.tar.gz" >> $GITHUB_ENV
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
@@ -53,9 +45,10 @@ jobs:
             ${{ runner.os }}-test-
             ${{ runner.os }}-
       - uses: julia-actions/julia-buildpkg@v1
+      - run: wget -O ~/cmdstan.tar.gz $CMDSTAN_URL
+      - run: tar -C ~ -zxpvf ~/cmdstan.tar.gz
+      - run: make -C $JULIA_CMDSTAN_HOME build
       - uses: julia-actions/julia-runtest@v1
-        env:
-          JULIA_CMDSTAN_HOME: ${{ env.JULIA_CMDSTAN_HOME }}
       - uses: julia-actions/julia-processcoverage@v1
       - uses: codecov/codecov-action@v1
         with:
