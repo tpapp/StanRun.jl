@@ -27,8 +27,8 @@ jobs:
     env:
       CMDSTAN_VERSION: "2.26.1"
       CMDSTAN_URL: https://github.com/stan-dev/cmdstan/releases/download/v2.26.1/cmdstan-2.26.1.tar.gz
-      JULIA_CMDSTAN_HOME: "$HOME/cmdstan-$CMDSTAN_VERSION/"
     steps:
+      - run: echo "JULIA_CMDSTAN_HOME=$HOME/cmdstan-$CMDSTAN_VERSION/" >> $GITHUB_ENV
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
         with:
