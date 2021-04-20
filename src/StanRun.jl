@@ -24,7 +24,7 @@ export StanModel, StanModelError, stan_sample, stan_compile
 using ArgCheck: @argcheck
 using Distributed: pmap
 using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
-using Parameters: @unpack
+using UnPack: @unpack
 using StanDump: stan_dump
 
 const CMDSTAN_HOME_VAR = "JULIA_CMDSTAN_HOME"
