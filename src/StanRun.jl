@@ -107,20 +107,29 @@ Ensure that a compiled model executable exists, and return its path.
 
 If compilation fails, a `StanModelError` is returned instead.
 
+See [`stan_compile`](@ref) for the documentation of keyword arguments.
+
 Internal, not exported.
 """
-function ensure_executable(model::StanModel)
+function ensure_executable(model::StanModel; debug::Bool = false, dry_run::Bool = false)
     @unpack cmdstan_home = model
     exec_path = executable_path(model)
     error_output = IOBuffer()
-    is_ok = cd(cmdstan_home) do
-        success(pipeline(`make -f $(cmdstan_home)/makefile -C $(cmdstan_home) $(exec_path)`;
-                         stderr = error_output))
+    cmd = `make -f $(cmdstan_home)/makefile -C $(cmdstan_home) $(exec_path)`
+    if debug
+        @info "Stan compilation information" cmdstan_home cmd exec_path
     end
-    if is_ok
-        exec_path
+    if dry_run
+        nothing
     else
-        throw(StanModelError(model, String(take!(error_output))))
+        is_ok = cd(cmdstan_home) do
+            success(pipeline(cmd; stderr = error_output))
+        end
+        if is_ok
+            exec_path
+        else
+            throw(StanModelError(model, String(take!(error_output))))
+        end
     end
 end
 
@@ -153,9 +162,13 @@ end
 $(SIGNATURES)
 
 Compile a model, throwing an error if it failed.
+
+When `debug = true`, write the command that would be executed into the log.
+
+When `dry_run = true`, don't compile.
 """
-function stan_compile(model)
-    ensure_executable(model)
+function stan_compile(model; debug::Bool = false, dry_run::Bool = false)
+    ensure_executable(model; debug = debug, dry_run = dry_run)
     nothing
 end
 
