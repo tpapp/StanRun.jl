@@ -4,9 +4,18 @@ Helper infrastructure to compile and sample models using `cmdstan`.
 [`StanModel`](@ref) wraps a model definition (source code), while [`stan_sample`](@ref) can
 be used to sample from it.
 
-[`stan_compile`](@ref) can be used to pre-compile a model without sampling. A
-[`StanModelError`](@ref) is thrown if this fails, which contains the error messages from
-`stanc`.
+[`stan_compile`](@ref) can be used to pre-compile a model without sampling, or for
+debugging. A [`StanModelError`](@ref) is thrown if this fails, which contains the error
+messages from `stanc`.
+
+# Example
+
+```julia
+using StanRun
+model = StanModel("/path/to/model.stan") # directory should be writable, for compilation
+data = (N = 100, x = randn(N, 1000))     # in a format supported by stan_dump
+chains = stan_sample(model, data, 5)     # 5 chain paths and log files
+```
 """
 module StanRun
 
