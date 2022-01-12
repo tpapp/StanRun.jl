@@ -208,15 +208,22 @@ compiling the model.
 
 `sample_options` and `output_options` are either strings, or iterables (empty by default),
 and are pasted in after `sample` or `output`, respectively, in the command line.
+
+When `debug_cmds` (default: `false`), print the shell commands that would be executed with
+`@info`.
 """
 function stan_sample(model::StanModel, data_file::AbstractString, n_chains::Integer;
                      output_base = default_output_base(model),
-                     rm_samples = true, sample_options = (), output_options = ())
+                     rm_samples = true, sample_options = (), output_options = (),
+                     debug_cmds::Bool = false)
     exec_path = ensure_executable(model)
     rm_samples && rm.(find_samples(model))
     cmds_and_paths = [stan_cmd_and_paths(exec_path, data_file, output_base, id,
                                          sample_options, output_options)
                       for id in 1:n_chains]
+    if debug_cmds
+        @info "stan_sample" first.(cmds_and_paths)
+    end
     pmap(cmds_and_paths) do cmd_and_path
         cmd, (sample_path, log_path) = cmd_and_path
         success(cmd) ? sample_path : nothing, log_path
