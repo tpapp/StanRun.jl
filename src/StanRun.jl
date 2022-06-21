@@ -88,6 +88,12 @@ on demand if it does not exist, or if the source code is more recent).
 obtained from the environment variable `$(CMDSTAN_HOME_VAR)`."
 """
 function StanModel(source_path; cmdstan_home = get_cmdstan_home())
+    if !isabspath(source_path)
+        path = abspath(source_path)
+        @warn("Stan source path should be an absolute path, replacing",
+              original_path = source_path, replacement_path = path)
+        source_path = path
+    end
     StanModel(source_path, cmdstan_home)
 end
 
