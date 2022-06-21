@@ -169,8 +169,11 @@ function stan_cmd_and_paths(exec_path::AbstractString, data_file::AbstractString
                             sample_options, output_options)
     sample_file = sample_file_path(output_base, id)
     log_file = log_file_path(output_base, id)
+    # NOTE when https://github.com/JuliaLang/julia/issues/45767 is fixed, remove rm(...) and
+    # `append = true`.
+    rm(log_file; force = true)
     pipeline(`$(exec_path) sample id=$(id) $(sample_options) data file=$(data_file) output file=$(sample_file) $(output_options)`;
-             stdout = log_file), (sample_file, log_file)
+             stdout = log_file, stderr = log_file, append = true), (sample_file, log_file)
 end
 
 """
