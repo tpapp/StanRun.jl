@@ -1,5 +1,7 @@
 using StanRun, Test
 
+using StanRun: get_arguments
+
 @testset "cmdstan run and results" begin
     # setup environment
     MODELDIR = mktempdir()
@@ -46,4 +48,11 @@ end
         e_repr = String(take!(io))
         @test occursin("error when compiling", e_repr)
     end
+end
+
+@testset "sample options" begin
+    expected = [`num_samples=50`, `max_depth=12`]
+    @test get_arguments((num_samples = 50, max_depth = 12)) == expected
+    @test get_arguments("num_samples=50 max_depth=12") == expected
+    @test get_arguments(["num_samples=50", (max_depth=12, )]) == expected
 end

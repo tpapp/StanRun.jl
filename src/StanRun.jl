@@ -169,8 +169,14 @@ function stan_cmd_and_paths(exec_path::AbstractString, data_file::AbstractString
                             sample_options, output_options)
     sample_file = sample_file_path(output_base, id)
     log_file = log_file_path(output_base, id)
-    pipeline(`$(exec_path) sample id=$(id) $(sample_options) data file=$(data_file) output file=$(sample_file) $(output_options)`;
-             stdout = log_file), (sample_file, log_file)
+    arguments = vcat([`sample`], get_arguments(sample_options),
+                     [`id=$(id)`,
+                      `data`, `file=$(data_file)`,
+                      `output`],
+                     get_arguments(output_options),
+                     [`file=$(sample_file)`])
+    cmd = foldl((x, y) -> `$x $y`, arguments; init = `$(exec_path)`)
+    (pipeline(cmd; stdout = log_file), (sample_file, log_file))
 end
 
 """
@@ -187,14 +193,51 @@ function stan_compile(model; debug::Bool = false, dry_run::Bool = false)
     nothing
 end
 
+"""
+$(SIGNATURES)
+
+Return a `Vector{Cmd}` of arguments that correspond to the given options. See
+[`stan_sample`](@ref).
+"""
+function get_arguments(options::AbstractString)
+    map(x -> `$(x)`, split(options, " "; keepempty = false))
+end
+
+function get_arguments(options::NamedTuple)
+    args = Vector{Cmd}()
+    function _append_nt(value::NamedTuple)
+        foreach(x -> _append(x...), pairs(value))
+    end
+    function _append(key, value::NamedTuple)
+        push!(args, `$(string(key))`)
+       __append_nt(value)
+    end
+    function _append(key, value::Union{String,Real})
+        push!(args, `$(string(key))=$(value)`)
+    end
+    function _append(key, value::Nothing)
+        push!(args, `$(string(key))`)
+    end
+    _append_nt(options)
+    args
+end
+
+function get_arguments(options::AbstractVector)
+    mapreduce(get_arguments, vcat, options)
+end
+
 function stan_sample(model, data::NamedTuple, n_chains::Integer;
                      output_base = default_output_base(model),
                      data_file = output_base * ".data.R",
-                     rm_samples = true, sample_options = (), output_options = ())
+                     rm_samples = true,
+                     sample_options = "",
+                     output_options = "",
+                     debug_cmds::Bool = false,
+                     debug_compilation::Bool = false)
     stan_dump(data_file, data; force = true)
-    stan_sample(model, data_file, n_chains; output_base = output_base,
-                rm_samples = rm_samples, sample_options = sample_options,
-                output_options = output_options)
+    stan_sample(model, data_file, n_chains;
+                output_base, rm_samples, sample_options, output_options, debug_cmds,
+                debug_compilation)
 end
 
 """
@@ -212,17 +255,41 @@ When `data` is provided as a `NamedTuple`, it is written using `StanDump.stan_du
 When `rm_samples` (default: `true`), remove potential pre-existing sample files after
 compiling the model.
 
-`sample_options` and `output_options` are either strings, or iterables (empty by default),
-and are pasted in after `sample` or `output`, respectively, in the command line.
+`sample_options` and `output_options` are expanded as described below, and passed on to
+Stan, pasted in after `sample` or `output`, respectively, in the command line.
 
 When `debug_cmds` (default: `false`), print the shell commands that would be executed with
 `@info`.
+
+# Options
+
+Options can be specified either
+
+- A `NamedTuple`, which is expanded recursively (`key = nothing` is expanded to `key`). This
+  is the *recommended* approach.
+
+- As a string, which will be split on spaces (**note**: use no spaces around `=`).
+
+- A vector of the above, which can be mixed, which will be concatenated.
+
+For example,
+
+```julia
+sample_options = `(num_samples = 500, max_depth = 14)` # recommended
+sample_options = "num_samples=500, max_depth=14"       # note: no spaces around =
+sample_options = ["num_samples=500", "max_depth=14"]
+```
+
+are equivalent.
 """
 function stan_sample(model::StanModel, data_file::AbstractString, n_chains::Integer;
                      output_base = default_output_base(model),
-                     rm_samples = true, sample_options = (), output_options = (),
-                     debug_cmds::Bool = false)
-    exec_path = ensure_executable(model)
+                     rm_samples = true,
+                     sample_options = "",
+                     output_options = "",
+                     debug_cmds::Bool = false,
+                     debug_compilation::Bool = false)
+    exec_path = ensure_executable(model; debug = debug_compilation)
     rm_samples && rm.(find_samples(model))
     cmds_and_paths = [stan_cmd_and_paths(exec_path, data_file, output_base, id,
                                          sample_options, output_options)
