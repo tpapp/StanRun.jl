@@ -130,7 +130,9 @@ function ensure_executable(model::StanModel; debug::Bool = false, dry_run::Bool 
     @unpack cmdstan_home = model
     exec_path = executable_path(model)
     error_output = IOBuffer()
-    cmd = `make -f $(cmdstan_home)/makefile -C $(cmdstan_home) $(exec_path)`
+    info_output = IOBuffer()
+    makefile_path = joinpath(cmdstan_home, "makefile")
+    cmd = `make $(exec_path)`
     if debug
         @info "Stan compilation information" cmdstan_home cmd exec_path
     end
@@ -138,7 +140,10 @@ function ensure_executable(model::StanModel; debug::Bool = false, dry_run::Bool 
         nothing
     else
         is_ok = cd(cmdstan_home) do
-            success(pipeline(cmd; stderr = error_output))
+            success(pipeline(cmd; stderr = error_output, stdout = info_output))
+        end
+        if debug
+            @info "compilation output" String(take!(info_output))
         end
         if is_ok
             exec_path
@@ -176,7 +181,8 @@ function stan_cmd_and_paths(exec_path::AbstractString, data_file::AbstractString
                      get_arguments(output_options),
                      [`file=$(sample_file)`])
     cmd = foldl((x, y) -> `$x $y`, arguments; init = `$(exec_path)`)
-    (pipeline(cmd; stdout = log_file), (sample_file, log_file))
+    (pipeline(cmd; stdout = log_file, stderr = log_file, append = true),
+     (sample_file, log_file))
 end
 
 """
@@ -299,6 +305,7 @@ function stan_sample(model::StanModel, data_file::AbstractString, n_chains::Inte
     end
     pmap(cmds_and_paths) do cmd_and_path
         cmd, (sample_path, log_path) = cmd_and_path
+        rm(log_path; force = true)
         success(cmd) ? sample_path : nothing, log_path
     end
 end
