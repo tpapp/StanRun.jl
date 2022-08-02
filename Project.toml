@@ -1,7 +1,7 @@
 name = "StanRun"
 uuid = "d49c3b98-12bb-537a-8c40-37c13654c7f4"
 authors = ["Tamas K. Papp <tkpapp@gmail.com>"]
-version = "0.2.4"
+version = "0.3.0"
 
 [deps]
 ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
@@ -15,7 +15,7 @@ ArgCheck = "2"
 DocStringExtensions = "0.8, 0.9"
 StanDump = "0.2"
 UnPack = "1"
-julia = "1"
+julia = "1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

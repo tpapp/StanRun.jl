@@ -1,5 +1,7 @@
 using StanRun, Test
 
+using StanRun: get_arguments
+
 @testset "cmdstan run and results" begin
     # setup environment
     MODELDIR = mktempdir()
@@ -17,13 +19,21 @@ using StanRun, Test
     OUTPUT_BASE = joinpath(SAMPLEDIR, "test")
     time_before = time()
     @test stan_compile(model) ≡ nothing
-    chains = stan_sample(model, (N = 100, x = randn(100)), 5; output_base = OUTPUT_BASE)
+    data = (N = 100, x = randn(100))
+    chains = stan_sample(model, data, n_chains; output_base = OUTPUT_BASE)
     for (sample, logfile) in chains
         @test ctime(sample) ≥ time_before
         @test ctime(sample) ≥ time_before
     end
     @test first.(chains) == sort(StanRun.find_samples(OUTPUT_BASE)) ==
         [joinpath(SAMPLEDIR, "test_chain_$(i).csv") for i in 1:n_chains]
+
+    @testset "bogus arguments" begin
+        chains = stan_sample(model, data, 1;
+                             sample_options = (bogus = 12, ))
+        # NOTE: if Stan changes it's error message, this may fail
+        @test occursin(r"bogus=12.*misplaced", read(chains[1][2], String))
+    end
 end
 
 @testset "unset cmdstan environment" begin
@@ -46,4 +56,11 @@ end
         e_repr = String(take!(io))
         @test occursin("error when compiling", e_repr)
     end
+end
+
+@testset "sample options" begin
+    expected = [`num_samples=50`, `max_depth=12`]
+    @test get_arguments((num_samples = 50, max_depth = 12)) == expected
+    @test get_arguments("num_samples=50 max_depth=12") == expected
+    @test get_arguments(["num_samples=50", (max_depth=12, )]) == expected
 end
