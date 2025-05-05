@@ -17,9 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.6' # Replace this with the minimum Julia version that your package supports. E.g. if your package requires Julia 1.5 or higher, change this to '1.5'.
-          - '1' # Leave this line unchanged. '1' will automatically expand to the latest stable 1.x release of Julia.
-          - 'nightly'
+          - 'min' # the minimum Julia version that your package supports
+          - '1'   # will automatically expand to the latest stable 1.x release of Julia.
+          # NOTE: CI on nightly is not enabled by default, uncomment if you need it. Cf the discussion at
+          # https://discourse.julialang.org/t/why-do-packages-run-continuous-integration-tests-on-julia-nightly/101208/3
+          # - 'nightly'
         os:
           - ubuntu-latest
         arch:
@@ -29,12 +31,12 @@ jobs:
     steps:
       - run: echo "JULIA_CMDSTAN_HOME=$HOME/cmdstan-$CMDSTAN_VERSION/" >> $GITHUB_ENV
       - run: echo "CMDSTAN_URL=https://github.com/stan-dev/cmdstan/releases/download/v$CMDSTAN_VERSION/cmdstan-$CMDSTAN_VERSION.tar.gz" >> $GITHUB_ENV
-      - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: actions/cache@v1
+      - uses: actions/cache@v4
         env:
           cache-name: cache-artifacts
         with:
@@ -50,6 +52,9 @@ jobs:
       - run: make -C $JULIA_CMDSTAN_HOME build
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v5
         with:
           file: lcov.info
+          # NOTE: you need to add the token to Github secrets, see
+          # https://docs.codecov.com/docs/adding-the-codecov-token
+          token: ${{ secrets.CODECOV_TOKEN }}
