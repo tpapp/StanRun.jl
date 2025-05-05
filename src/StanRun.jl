@@ -24,7 +24,6 @@ export StanModel, StanModelError, stan_sample, stan_compile
 using ArgCheck: @argcheck
 using Distributed: pmap
 using DocStringExtensions: FIELDS, SIGNATURES, TYPEDEF
-using UnPack: @unpack
 using StanDump: stan_dump
 
 const CMDSTAN_HOME_VAR = "JULIA_CMDSTAN_HOME"
@@ -41,7 +40,7 @@ struct StanModel{S <: AbstractString}
 end
 
 function Base.show(io::IO, model::StanModel)
-    @unpack source_path, cmdstan_home = model
+    (; source_path, cmdstan_home) = model
     print(io, "Stan model at $(source_path)",
           "\n    (CmdStan home: $(model.cmdstan_home))")
 end
@@ -127,7 +126,7 @@ See [`stan_compile`](@ref) for the documentation of keyword arguments.
 Internal, not exported.
 """
 function ensure_executable(model::StanModel; debug::Bool = false, dry_run::Bool = false)
-    @unpack cmdstan_home = model
+    (; cmdstan_home) = model
     exec_path = executable_path(model)
     error_output = IOBuffer()
     info_output = IOBuffer()
