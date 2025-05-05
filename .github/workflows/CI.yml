@@ -27,7 +27,7 @@ jobs:
         arch:
           - x64
     env:
-      CMDSTAN_VERSION: "2.30.1"
+      CMDSTAN_VERSION: "2.36.0"
     steps:
       - run: echo "JULIA_CMDSTAN_HOME=$HOME/cmdstan-$CMDSTAN_VERSION/" >> $GITHUB_ENV
       - run: echo "CMDSTAN_URL=https://github.com/stan-dev/cmdstan/releases/download/v$CMDSTAN_VERSION/cmdstan-$CMDSTAN_VERSION.tar.gz" >> $GITHUB_ENV

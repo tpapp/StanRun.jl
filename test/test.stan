@@ -1,7 +1,7 @@
 // test file
 data {
   int N;
-  real x[N];
+  array[N] real x;
 }
 parameters {
   real mu;
